@@ -22,3 +22,4 @@ extract the most useful information
 - challenge with handling token limits (4096)
 - challenge with calculating whether there are enough limits left in the ChatGPT account
 - challenge with creating a cron job
+- challenge with dealing with rich-content email (embedded video, audio)
