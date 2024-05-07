@@ -1,12 +1,20 @@
 import imaplib
 import email
 import json
+import requests  # to be able to check the given token limits
+import tiktoken  # to count tokens, deal with token limits
+
+# open_ai_model = "gpt-3.5-turbo-instruct"
+open_ai_model = "text-embedding-3-large"
+llm_token_limit = 4096
+
 
 # send the key, get the value from the hidden .config file
 def load_api_key(key):
     with open('../.config', 'r') as file:
         config = json.load(file)
         return config[key]
+
 
 # fetch the emails
 
@@ -47,6 +55,47 @@ def fetch_emails(email_user, email_password, sender_email, server='imap.gmail.co
 
     return emails
 
+
+def countTokens(text):
+    encoding = tiktoken.encoding_for_model(open_ai_model)
+    number_of_tokens = len(encoding.encode(text))
+    return number_of_tokens
+
+
+def chunk_text(text_body, max_tokens, extra_tokens):
+    """
+    Chunk the given text so that each chunk has fewer than `max_tokens`,
+    considering `extra_tokens` required for the role and response.
+
+    Args:
+    text (str): The text to be chunked.
+    max_tokens (int): Maximum number of tokens allowed per chunk including extras.
+    extra_tokens (int): Tokens required for additional elements like role, response.
+
+    Returns:
+    list: A list of text chunks.
+    """
+    words = text_body.split()
+    current_chunk = []
+    current_length = 0
+    chunks = []
+
+    for word in words:
+        word_tokens = countTokens(word)
+        if current_length + word_tokens + extra_tokens > max_tokens:
+            chunks.append(" ".join(current_chunk))
+            current_chunk = []
+            current_length = 0
+        current_chunk.append(word)
+        current_length += word_tokens
+
+    # Don't forget to add the last chunk if there's remaining content.
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+
+    return chunks
+
+
 if __name__ == '__main__':
     #print(load_api_key('test_email_subject')) # test method
 
@@ -54,9 +103,20 @@ if __name__ == '__main__':
 
     emails = fetch_emails(load_api_key('gmail_user'), load_api_key('gmail_pass'), sender_email)
 
-    #print(len(emails))
+    #print(f'number of emails = {len(emails)}')
+    print(f'llm_token_limit = {llm_token_limit}')
 
     for email in emails:
         print(f"{email['from']}")
         print(f"{email['subject']}")
         #print(f"{email['body']}")
+
+        # test token count
+        print(f"number of tokens in email body = {countTokens(email['body'])}")
+
+        chunks = chunk_text(email['body'], llm_token_limit, 50)
+
+        # test if chunked array populates
+        print(f'number of chunks = {len(chunks)}')
+        for chunk in chunks:
+            print(chunk)
