@@ -18,8 +18,9 @@ extract the most useful information
    7. repeat the summary process
 
 
-***NOTES***
-- challenge with handling token limits (4096)
-- challenge with calculating whether there are enough limits left in the ChatGPT account
-- challenge with creating a cron job
-- challenge with dealing with rich-content email (embedded video, audio)
+***FEATURES***
+- need to handling token limits (4096)
+- calculate whether there are enough limits left in the ChatGPT account
+- creating a cron job
+- dealing with rich-content email (embedded video, audio)
+- be LLM agnostic (support for OpenAI, Gemini, or a combination of all)
