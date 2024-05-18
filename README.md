@@ -20,7 +20,7 @@ extract the most useful information
 
 ***FEATURES***
 - ~~need to handling token limits (4096)~~
-- calculate whether there are enough limits left in the ChatGPT account
+- calculate whether there are enough limits left in the ChatGPT account (no limit for open-source LLM)
 - creating a cron job
 - dealing with rich-content email (embedded video, audio)
 - be LLM agnostic (support for OpenAI, Gemini, or a combination of all)

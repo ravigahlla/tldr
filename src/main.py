@@ -3,18 +3,18 @@ import email
 import json
 import requests  # to be able to check the given token limits
 import tiktoken  # to count tokens, deal with token limits
+from openai import OpenAI
 
-# open_ai_model = "gpt-3.5-turbo-instruct"
-open_ai_model = "text-embedding-3-large"
-llm_token_limit = 4096
-
+open_ai_model = "gpt-4"
+#open_ai_model = "text-embedding-3-large"
+llm_token_limit = 1000 # for testing purposes
+#llm_token_limit = 4096
 
 # send the key, get the value from the hidden .config file
 def load_api_key(key):
     with open('../.config', 'r') as file:
         config = json.load(file)
         return config[key]
-
 
 # fetch the emails
 
@@ -96,6 +96,40 @@ def chunk_text(text_body, max_tokens, extra_tokens):
     return chunks
 
 
+def callLLM(text):
+    '''
+    calls an LLM with the string
+    :param string: the string for the user role
+    :return: the response
+    '''
+    client = OpenAI(api_key=load_api_key('chatgpt_api_key'))
+    msg = f"Summarize the following prompt in triple quotes '''{text}''' "
+
+    response = client.completions.create(
+        # model="gpt-3.5-turbo-instruct",  # Change the model according to your needs
+        model=open_ai_model,  # Change the model according to your needs
+        prompt=msg,
+        temperature=0.7,
+        max_tokens=llm_token_limit,
+        top_p=1.0,
+        frequency_penalty=0.0,
+        presence_penalty=0.0)
+
+    return response.choices[0].text.strip()
+
+def summarizer(chunks):
+    '''
+    takes a list of strings, and summarizes them all
+    :param chunks: the list of chunked strings
+    :return: a summary string of the entire chunked strings
+    '''
+
+    # taking the n+1, and n+2 string, call the LLM to create a summary, and place within the summary
+    #for chunk in chunks:
+
+    # repeat, comparing the n+2 with the n+3 string, replacing with the new summary, until...you get to n+max string
+
+
 if __name__ == '__main__':
     #print(load_api_key('test_email_subject')) # test method
 
@@ -118,5 +152,24 @@ if __name__ == '__main__':
 
         # test if chunked array populates
         print(f'number of chunks = {len(chunks)}')
+
+        client = OpenAI(api_key=load_api_key('chatgpt_api_key'))
+
+        end_summary = ''
+
         for chunk in chunks:
-            print(chunk)
+            #print(f"orig = {chunk}") # for debugging
+            #print(f"resp = {callLLM(chunk)}")
+
+            completion = client.chat.completions.create(
+                model=open_ai_model,  # Make sure you have access to this model
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that summarizes text."},
+                    {"role": "user", "content": f"Please summarize the following text: {chunk}. If the following in triple backticks isn't empty, then summarize along with this background context '''{end_summary}'''"}
+                ]
+            )
+
+            end_summary = completion.choices[0].message.content
+
+            #print(f"resp = {end_summary}")
+        print(f"resp = {end_summary}")
