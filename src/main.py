@@ -1,5 +1,7 @@
 import imaplib
+import smtplib
 import email
+from email.mime.text import MIMEText
 import json
 import requests  # to be able to check the given token limits
 import tiktoken  # to count tokens, deal with token limits
@@ -134,6 +136,33 @@ def summarizer(chunks):
     return end_summary
 
 
+def send_email(user: object, password: object, recipient: object, subject: object, body: object, server: object = 'smtp.gmail.com', port: object = 587) -> object:
+    '''
+
+    Args:
+        user: email of user
+        password: email app password for user
+        recipient: email of recipient
+        subject: subject of email
+        body: body of email
+        server:
+        port:
+
+    Returns:
+
+    '''
+
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = user
+    msg['To'] = recipient
+
+    with smtplib.SMTP(server, port) as smtp:
+        smtp.starttls()
+        smtp.login(user, password)
+        smtp.send_message(msg)
+
+
 if __name__ == '__main__':
     #print(load_api_key('test_email_subject')) # test method
 
@@ -162,4 +191,13 @@ if __name__ == '__main__':
         # now summarize the email
         summary = summarizer(chunks)
 
-        print(f"resp = {summary}")
+        #print(f"resp = {summary}")
+
+        # email the summary back to me
+        send_email(
+            load_api_key('gmail_user'),
+            load_api_key('gmail_app_pass'),
+            'ravigahlla@gmail.com',
+            f"Your ChatGPT summary of {email['subject']}",
+            summary
+        )
