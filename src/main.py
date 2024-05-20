@@ -56,7 +56,7 @@ def fetch_emails(email_user, email_password, sender_email, server='imap.gmail.co
     return emails
 
 
-def countTokens(text):
+def count_tokens(text):
     encoding = tiktoken.encoding_for_model(open_ai_model)
     number_of_tokens = len(encoding.encode(text))
     return number_of_tokens
@@ -81,7 +81,7 @@ def chunk_text(text_body, max_tokens, extra_tokens):
     chunks = []
 
     for word in words:
-        word_tokens = countTokens(word)
+        word_tokens = count_tokens(word)
         if current_length + word_tokens + extra_tokens > max_tokens:
             chunks.append(" ".join(current_chunk))
             current_chunk = []
@@ -96,38 +96,42 @@ def chunk_text(text_body, max_tokens, extra_tokens):
     return chunks
 
 
-def callLLM(text):
-    '''
-    calls an LLM with the string
-    :param string: the string for the user role
-    :return: the response
-    '''
-    client = OpenAI(api_key=load_api_key('chatgpt_api_key'))
-    msg = f"Summarize the following prompt in triple quotes '''{text}''' "
-
-    response = client.completions.create(
-        # model="gpt-3.5-turbo-instruct",  # Change the model according to your needs
-        model=open_ai_model,  # Change the model according to your needs
-        prompt=msg,
-        temperature=0.7,
-        max_tokens=llm_token_limit,
-        top_p=1.0,
-        frequency_penalty=0.0,
-        presence_penalty=0.0)
-
-    return response.choices[0].text.strip()
-
 def summarizer(chunks):
     '''
-    takes a list of strings, and summarizes them all
+    takes a list of strings below the LLM token limit, traverse the list, and aggregate a summary
     :param chunks: the list of chunked strings
     :return: a summary string of the entire chunked strings
     '''
 
-    # taking the n+1, and n+2 string, call the LLM to create a summary, and place within the summary
-    #for chunk in chunks:
+    client = OpenAI(api_key=load_api_key('openai_api_key'))
 
-    # repeat, comparing the n+2 with the n+3 string, replacing with the new summary, until...you get to n+max string
+    end_summary = ''  # initial value of the summary will be empty
+
+    for chunk in chunks:
+        # print(f"orig = {chunk}") # for debugging
+        # print(f"resp = {callLLM(chunk)}")
+
+        completion = client.chat.completions.create(
+            model=open_ai_model,  # Make sure you have access to this model
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that summarizes text."},
+                {"role": "user",
+                 "content": f"Summarize the following text between triple exclamation marks !!!{chunk}!!!. \
+                             If the following in triple backticks isn't empty, then summarize along with this \
+                             background context '''{end_summary}'''"}
+            ],
+            temperature=0.7,
+            max_tokens=llm_token_limit,
+            top_p=1.0,
+            frequency_penalty=0.0,
+            presence_penalty=0.0
+        )
+
+        end_summary = completion.choices[0].message.content
+
+        # print(f"resp = {end_summary}")
+
+    return end_summary
 
 
 if __name__ == '__main__':
@@ -135,41 +139,27 @@ if __name__ == '__main__':
 
     sender_email = 'ravigahlla@gmail.com' # replace with load_api_key('sender_email') when NOT testing
 
-    emails = fetch_emails(load_api_key('gmail_user'), load_api_key('gmail_pass'), sender_email)
+    emails = fetch_emails(load_api_key('gmail_user'), load_api_key('gmail_app_pass'), sender_email)
 
     #print(f'number of emails = {len(emails)}')
     print(f'llm_token_limit = {llm_token_limit}')
 
+    # go through each email
     for email in emails:
-        print(f"{email['from']}")
-        print(f"{email['subject']}")
+        print(f"From = {email['from']}")
+        print(f"Subject = {email['subject']}")
         #print(f"{email['body']}")
 
-        # test token count
-        print(f"number of tokens in email body = {countTokens(email['body'])}")
+        # test if token count works
+        #print(f"number of tokens in email body = {count_tokens(email['body'])}")
 
+        # splice up the email content into chunks below the llm token limit (e.g., 4096)
         chunks = chunk_text(email['body'], llm_token_limit, 50)
 
-        # test if chunked array populates
-        print(f'number of chunks = {len(chunks)}')
+        # test if chunked array is populated
+        #print(f'number of chunks = {len(chunks)}')
 
-        client = OpenAI(api_key=load_api_key('chatgpt_api_key'))
+        # now summarize the email
+        summary = summarizer(chunks)
 
-        end_summary = ''
-
-        for chunk in chunks:
-            #print(f"orig = {chunk}") # for debugging
-            #print(f"resp = {callLLM(chunk)}")
-
-            completion = client.chat.completions.create(
-                model=open_ai_model,  # Make sure you have access to this model
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant that summarizes text."},
-                    {"role": "user", "content": f"Please summarize the following text: {chunk}. If the following in triple backticks isn't empty, then summarize along with this background context '''{end_summary}'''"}
-                ]
-            )
-
-            end_summary = completion.choices[0].message.content
-
-            #print(f"resp = {end_summary}")
-        print(f"resp = {end_summary}")
+        print(f"resp = {summary}")
