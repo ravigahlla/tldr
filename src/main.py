@@ -121,10 +121,15 @@ def summarizer(chunks):
             {"role": "system", "content": "You are a helpful assistant that summarizes text."},
             {"role": "user",
              "content": f"Summarize the following text between triple exclamation marks !!!{chunk}!!!. \
-                                         Pay particular attention to any content which showcases emerging strategic trends in the \
-                                         technology industry. \
-                                         If the following in triple backticks isn't empty, then summarize along with this \
-                                         background context '''{end_summary}'''"}
+                State the name of this article, the date of the article, a one sentence executive summary, \
+                and then the rest of the summary below. Use headings or other formatting, in order to \
+                better present the information. \
+                Before stating the summary, display a section called keywords, and list the key concepts \
+                from the summary you will be displaying \
+                Highlight any particular content that showcases emerging strategic trends in the \
+                technology industry, or key technologies. \
+                If the following in triple backticks isn't empty, then include this background context \
+                in your summary '''{end_summary}'''"}
             ],
             temperature = 0.7,
                 # max_tokens=llm_token_limit,
