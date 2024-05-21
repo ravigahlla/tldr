@@ -5,12 +5,13 @@ from email.mime.text import MIMEText
 import json
 import requests  # to be able to check the given token limits
 import tiktoken  # to count tokens, deal with token limits
+import openai
 from openai import OpenAI
 
 open_ai_model = "gpt-4"
 #open_ai_model = "text-embedding-3-large"
-llm_token_limit = 1000 # for testing purposes
-#llm_token_limit = 4096
+#llm_token_limit = 1000 # for testing purposes
+llm_token_limit = 8192
 
 # send the key, get the value from the hidden .config file
 def load_api_key(key):
@@ -113,23 +114,41 @@ def summarizer(chunks):
         # print(f"orig = {chunk}") # for debugging
         # print(f"resp = {callLLM(chunk)}")
 
-        completion = client.chat.completions.create(
+        try:
+            completion = client.chat.completions.create(
             model=open_ai_model,  # Make sure you have access to this model
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that summarizes text."},
-                {"role": "user",
-                 "content": f"Summarize the following text between triple exclamation marks !!!{chunk}!!!. \
-                             If the following in triple backticks isn't empty, then summarize along with this \
-                             background context '''{end_summary}'''"}
+            {"role": "system", "content": "You are a helpful assistant that summarizes text."},
+            {"role": "user",
+             "content": f"Summarize the following text between triple exclamation marks !!!{chunk}!!!. \
+                                         Pay particular attention to any content which showcases emerging strategic trends in the \
+                                         technology industry. \
+                                         If the following in triple backticks isn't empty, then summarize along with this \
+                                         background context '''{end_summary}'''"}
             ],
-            temperature=0.7,
-            max_tokens=llm_token_limit,
-            top_p=1.0,
-            frequency_penalty=0.0,
-            presence_penalty=0.0
-        )
+            temperature = 0.7,
+                # max_tokens=llm_token_limit,
+            top_p = 1.0,
+            frequency_penalty = 0.0,
+            presence_penalty = 0.0
+            )
 
-        end_summary = completion.choices[0].message.content
+            end_summary = completion.choices[0].message.content
+
+        #except openai.error.RateLimitError as e:
+        #    print(f"Error: {e.error['message']}")
+
+        except openai.BadRequestError as e:
+            print(f"Error: {e.error['message']}")
+
+        #except openai.error.AuthenticationError as e:
+        #    print(f"Error: {e.error['message']}")
+
+        #except openai.error.PermissionDeniedError as e:
+        #    print(f"Error: {e.error['message']}")
+
+        except Exception as e:
+            print(f"An unexpected error occurred: {str(e)}")
 
         # print(f"resp = {end_summary}")
 
@@ -164,11 +183,10 @@ def send_email(user: object, password: object, recipient: object, subject: objec
 
 
 if __name__ == '__main__':
+    # test load_api_key
     #print(load_api_key('test_email_subject')) # test method
 
-    sender_email = 'ravigahlla@gmail.com' # replace with load_api_key('sender_email') when NOT testing
-
-    emails = fetch_emails(load_api_key('gmail_user'), load_api_key('gmail_app_pass'), sender_email)
+    emails = fetch_emails(load_api_key('gmail_user'), load_api_key('gmail_app_pass'), load_api_key('sender_email'))
 
     #print(f'number of emails = {len(emails)}')
     print(f'llm_token_limit = {llm_token_limit}')
