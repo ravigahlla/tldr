@@ -122,8 +122,7 @@ def summarizer(chunks):
             {"role": "user",
              "content": f"Summarize the following text between triple exclamation marks. \
                 State the name of this article, the date of the article, a one sentence executive summary, \
-                and then the rest of the summary below. Use HTML headings and formatting in order to better \
-                present the information. \
+                and then the rest of the summary below. \
                 Before stating the summary, display a bolded section called keywords, and list the key concepts \
                 from the summary you will be displaying \
                 During the summary, also emphasize any particular content that showcases emerging strategic trends \
