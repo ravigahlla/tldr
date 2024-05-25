@@ -19,6 +19,14 @@ extract the most useful information
 
 NOTE: you'll need an account balance with OpenAI, setup with auto-renewal, in order to make this work
 
+Requirements:
+- you'll want to create a .config file to store your credentials, and place in the main directory (in stratecheryGPT)
+- an account with OpenAI, so you can connect to their API, using the credentials in your .config
+- I'm using my gmail, so you'll need to get an app passkey to place within your .config file
+- Set urllib3 < 1.0 with this command
+
+[stratecheryGPT-v1-workflow.pdf](docs%2FstratecheryGPT-v1-workflow.pdf)
+
 
 ***TODO***
 - ~~need to handling token limits (4096)~~

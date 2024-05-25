@@ -145,7 +145,7 @@ def summarizer(chunks):
         #    print(f"Error: {e.error['message']}")
 
         except openai.BadRequestError as e:
-            print(f"Error: {e.error['message']}")
+            print(f"Error: {e['message']}")
 
         #except openai.error.AuthenticationError as e:
         #    print(f"Error: {e.error['message']}")
