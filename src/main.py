@@ -1,3 +1,5 @@
+import os
+import json
 import imaplib
 import smtplib
 import email
@@ -13,13 +15,22 @@ open_ai_model = "gpt-4"
 #llm_token_limit = 1000 # for testing purposes
 llm_token_limit = 8192
 
+# Get the directory where the script is located
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the absolute path to the .config file
+config_path = os.path.join(script_dir, '../.config')
+
 # send the key, get the value from the hidden .config file
+
+
 def load_api_key(key):
     with open('../.config', 'r') as file:
         config = json.load(file)
         return config[key]
 
 # fetch the emails
+
 
 def fetch_emails(email_user, email_password, sender_email, server='imap.gmail.com'):
     mail = imaplib.IMAP4_SSL(server)
@@ -191,6 +202,18 @@ def send_email(user: object, password: object, recipient: object, subject: objec
 if __name__ == '__main__':
     # test load_api_key
     #print(load_api_key('test_email_subject')) # test method
+
+    # check if os.path.exists(config_path):
+    if os.path.exists(config_path):
+        print("Config file exists")
+        try:
+            with open(config_path, 'r') as file:
+                config = json.load(file)
+                print("Config loaded successfully")
+        except Exception as e:
+            print(f"Error reading config file: {e}")
+    else:
+        print("Config file does not exist")
 
     emails = fetch_emails(load_api_key('gmail_user'), load_api_key('gmail_app_pass'), load_api_key('sender_email'))
 
