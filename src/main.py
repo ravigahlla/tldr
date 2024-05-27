@@ -1,9 +1,14 @@
 import os
 import json
+
+import email
 import imaplib
 import smtplib
-import email
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.message import EmailMessage
+from email import policy
+
 import json
 import requests  # to be able to check the given token limits
 import tiktoken  # to count tokens, deal with token limits
@@ -61,39 +66,39 @@ def check_if_file_exists(file):
 def fetch_emails(email_user, email_password, sender_email, server='imap.gmail.com'):
     mail = imaplib.IMAP4_SSL(server)
     mail.login(email_user, email_password)
-    mail.select('inbox')
+    mail.select('inbox')  # Select the inbox or another specific mailbox
     typ, search_data = mail.search(None, f'(UNSEEN FROM "{sender_email}")')
 
-    email_ids = set(search_data[0].split())  # Using set to avoid duplicate email IDs
+    email_ids = set(search_data[0].split())  # Using a set to avoid duplicate email IDs
 
     emails = []
     for email_id in email_ids:
         _, data = mail.fetch(email_id, '(RFC822)')
         raw_email = data[0][1]
-        msg = email.message_from_bytes(raw_email)
+        # Use policy.default to return a higher-level EmailMessage object
+        msg = email.message_from_bytes(raw_email, policy=policy.default)
 
-        # now extract the body of each email, and store in the array
-        body = None
-        if msg.is_multipart():
-            for part in msg.walk():
-                content_type = part.get_content_type()
-                content_disposition = part.get("Content-Disposition")
-                if content_type == "text/plain" and content_disposition is None:
-                    body = part.get_payload(decode=True).decode()
-                    break
-        else:
-            body = msg.get_payload(decode=True).decode()
-
-        # Append the body to the email information in a dictionary
-        email_info = {
-            "from": msg.get("from"),
-            "subject": msg.get("subject"),
-            "body": body,
-        }
-
-        emails.append(email_info)  # Append email info dictionary to the list
+        # Instead of extracting parts and creating a dictionary, append the full EmailMessage object
+        emails.append(msg)
 
     return emails
+
+
+def get_email_content(email_message):
+    if email_message.is_multipart():
+        for part in email_message.walk():
+            content_type = part.get_content_type()
+            content_disposition = part.get("Content-Disposition", "")
+            if content_type == 'text/plain' and 'attachment' not in content_disposition:
+                return part.get_payload(decode=True).decode()  # Decode from Base64 and decode bytes to str
+            elif content_type == 'text/html' and 'attachment' not in content_disposition:
+                return part.get_payload(decode=True).decode()  # Optional: return HTML content
+    else:
+        # If it's not multipart, just return the entire payload
+        return email_message.get_payload(decode=True).decode()
+
+    return ""  # Return an empty string if no suitable part was found
+
 
 
 def count_tokens(text):
@@ -165,7 +170,7 @@ def summarizer(chunks):
                 During the summary, also emphasize any particular content that showcases emerging strategic trends \
                 in the technology industry, or key emerging technologies. \
                 If the following background context in triple backticks isn't empty, then include this background \
-                context in your analysis '''{end_summary}''' \
+                context in your analysis ```{end_summary}``` \
                 !!!{chunk}!!!"
             }
             ],
@@ -198,31 +203,50 @@ def summarizer(chunks):
     return end_summary
 
 
-def send_email(user: object, password: object, recipient: object, subject: object, body: object, server: object = 'smtp.gmail.com', port: object = 587) -> object:
-    '''
+def send_email(is_forward_orig_email, user, password, recipient, subject, body, original_email, server='smtp.gmail.com', port=587):
+    """
+    Sends an existing EmailMessage object with additional body text at the top.
 
     Args:
-        user: email of user
-        password: email app password for user
-        recipient: email of recipient
-        subject: subject of email
-        body: body of email
-        server:
-        port:
-
-    Returns:
-
-    '''
-
-    msg = MIMEText(body)
-    msg['Subject'] = subject
-    msg['From'] = user
-    msg['To'] = recipient
-
+        is_forward_orig_email (int): Value to indicate whether to send an email, or forward (includes the body of original email)
+        user (str): Sender's email address.
+        password (str): Sender's email password.
+        recipient (str): Recipient's email address.
+        subject (str): Subject of the forwarded email.
+        body (str): Additional body text to prepend.
+        original_email (email.message.EmailMessage): Original EmailMessage to send.
+        server (str): SMTP server address.
+        port (int): SMTP server port.
+    """
+    # Setup the SMTP server
     with smtplib.SMTP(server, port) as smtp:
-        smtp.starttls()
-        smtp.login(user, password)
+        smtp.starttls()  # Start TLS encryption
+        smtp.login(user, password)  # Authenticate with the SMTP server
+
+        # Create a new MIMEMultipart message to forward the email with additional content
+        msg = MIMEMultipart()
+        msg['From'] = user
+        msg['To'] = recipient
+        msg['Subject'] = 'Your GPT summary of: ' + subject
+
+        # Add the new body text as the first part of the email
+        intro_text = MIMEText(body, 'plain')
+        msg.attach(intro_text)
+
+        if is_forward_orig_email:  # if you want to forward the original email, this will take care of that
+            # Check if original_email is already multipart
+            if original_email.is_multipart():
+                for part in original_email.walk():
+                    # We clone each part of the original message
+                    msg.attach(part)
+            else:
+                # If the original email is not multipart, just attach it as a plain text part
+                plain_text = MIMEText(original_email.get_payload(decode=True), 'plain')
+                msg.attach(plain_text)
+
+        # Send the constructed message
         smtp.send_message(msg)
+        print("Email sent successfully.")
 
 
 if __name__ == '__main__':
@@ -239,23 +263,29 @@ if __name__ == '__main__':
 
     # go through each email
     for email in emails:
-        print(f"From = {email['from']}")
-        print(f"Subject = {email['subject']}")
-        #print(f"{email['body']}")
+        #print(f"From = {email['From']}")
+        print(f"Summarizing {email['Subject']}")
+
+        print("calling get_email_content()...")
+        email_body = get_email_content(email)  # Get the plain text content
+        #print(body)  # Print the body of the email
 
         # test if token count works
         #print(f"number of tokens in email body = {count_tokens(email['body'])}")
 
         # splice up the email content into chunks below the llm token limit (e.g., 4096)
-        chunks = chunk_text(email['body'], llm_token_limit, 50)
+        print("calling chunk_text()...")
+        chunks = chunk_text(email_body, llm_token_limit, 50)
 
         # test if chunked array is populated
         #print(f'number of chunks = {len(chunks)}')
 
         # now summarize the email
+        print("calling summarizer()...")
         summary = summarizer(chunks)
 
         #print(f"resp = {summary}")
 
         # email the summary back to me
-        send_email(load_api_key('gmail_user'), load_api_key('gmail_app_pass'),'ravigahlla@gmail.com',f"ChatGPT summary of {email['subject']}", summary)
+        print("calling send_email()...")
+        send_email(1, load_api_key('gmail_user'), load_api_key('gmail_app_pass'), load_api_key('gmail_user'), email['Subject'], summary, email)
