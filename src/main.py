@@ -160,18 +160,17 @@ def summarizer(chunks):
             completion = client.chat.completions.create(
             model=open_ai_model,  # Make sure you have access to this model
             messages=[
-            {"role": "system", "content": "You are a helpful assistant that summarizes text."},
+            {"role": "system", "content": "You are a helpful assistant that summarizes text into a readable format."},
             {"role": "user",
-             "content": f"Summarize the following text between triple exclamation marks. \
-                State the name of this article, the date of the article, a one sentence executive summary, \
-                and then the rest of the summary below. \
-                Before stating the summary, display a bolded section called keywords, and list the key concepts \
-                from the summary you will be displaying \
-                During the summary, also emphasize any particular content that showcases emerging strategic trends \
-                in the technology industry, or key emerging technologies. \
+             "content": f"Summarize the text between triple exclamation marks: !!!{chunk}!!! \
+                Return the summary in HTML formatting, for better readability \
+                Have a section that states the name of this article, and the date of the article, \
+                Have a section for 1 to 2 sentence executive summary, \
+                Have a section called keywords, and list the key concepts from the summary in this section. \
+                Then have a section that displays a 1 to 3 paragraph summary. Look for particular content which \
+                showcases emerging strategic trends in the technology industry, or emerging technologies. \
                 If the following background context in triple backticks isn't empty, then include this background \
-                context in your analysis ```{end_summary}``` \
-                !!!{chunk}!!!"
+                context in your analysis ```{end_summary}```"
             }
             ],
             temperature = 0.7,
@@ -213,7 +212,7 @@ def send_email(is_forward_orig_email, user, password, recipient, subject, body, 
         password (str): Sender's email password.
         recipient (str): Recipient's email address.
         subject (str): Subject of the forwarded email.
-        body (str): Additional body text to prepend.
+        body (str): HTML content to prepend to the email.
         original_email (email.message.EmailMessage): Original EmailMessage to send.
         server (str): SMTP server address.
         port (int): SMTP server port.
@@ -229,11 +228,13 @@ def send_email(is_forward_orig_email, user, password, recipient, subject, body, 
         msg['To'] = recipient
         msg['Subject'] = 'Your GPT summary of: ' + subject
 
-        # Add the new body text as the first part of the email
-        intro_text = MIMEText(body, 'plain')
+        # Add the new HTML body text as the first part of the email
+        intro_text = MIMEText(body, 'html')
         msg.attach(intro_text)
 
         if is_forward_orig_email:  # if you want to forward the original email, this will take care of that
+            msg.attach(MIMEText("<br><br><b>ORIGINAL EMAIL<b><hr><br>", 'html'))
+
             # Check if original_email is already multipart
             if original_email.is_multipart():
                 for part in original_email.walk():
@@ -264,7 +265,7 @@ if __name__ == '__main__':
     # go through each email
     for email in emails:
         #print(f"From = {email['From']}")
-        print(f"Summarizing {email['Subject']}")
+        print(f"Summarizing: {email['Subject']}")
 
         print("calling get_email_content()...")
         email_body = get_email_content(email)  # Get the plain text content
