@@ -244,10 +244,4 @@ if __name__ == '__main__':
         #print(f"resp = {summary}")
 
         # email the summary back to me
-        send_email(
-            load_api_key('gmail_user'),
-            load_api_key('gmail_app_pass'),
-            'ravigahlla@gmail.com',
-            f"Your ChatGPT summary of {email['subject']}",
-            summary
-        )
+        send_email(load_api_key('gmail_user'), load_api_key('gmail_app_pass'),'ravigahlla@gmail.com',f"ChatGPT summary of {email['subject']}", summary)
