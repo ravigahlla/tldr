@@ -110,6 +110,45 @@ def count_tokens(text):
 def chunk_text(text_body, max_tokens, extra_tokens):
     """
     Chunk the given text so that each chunk has fewer than `max_tokens`,
+    considering `extra_score` required for the role and response.
+
+    Args:
+    text_body (str): The text to be chunked.
+    max_tokens (int): Maximum number of tokens allowed per chunk.
+    extra_tokens (int): Tokens required for additional elements like role, response.
+
+    Returns:
+    list: A list of text chunks.
+    """
+    words = text_body.split()
+    current_chunk = []
+    current_length = 0
+    chunks = []
+
+    # Calculate the actual maximum tokens per chunk considering the extras
+    effective_max_tokens = max_tokens - extra_tokens
+
+    for word in words:
+        word_tokens = count_tokens(word)  # Assume this function is accurate
+        if current_length + word_tokens > effective_max_tokens:
+            # When adding another word exceeds the effective max tokens, save the current chunk
+            if current_chunk:  # Ensure we don't append an empty chunk
+                chunks.append(" ".join(current_chunk))
+                current_chunk = []
+                current_length = 0
+        current_chunk.append(word)
+        current_length += word_tokens
+
+    # Add the last chunk if there's remaining content
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+
+    return chunks
+
+
+'''def chunk_text(text_body, max_tokens, extra_tokens):
+    """
+    Chunk the given text so that each chunk has fewer than `max_tokens`,
     considering `extra_tokens` required for the role and response.
 
     Args:
@@ -138,7 +177,7 @@ def chunk_text(text_body, max_tokens, extra_tokens):
     if current_chunk:
         chunks.append(" ".join(current_chunk))
 
-    return chunks
+    return chunks'''
 
 
 def summarizer(chunks):
@@ -162,15 +201,17 @@ def summarizer(chunks):
             messages=[
             {"role": "system", "content": "You are a helpful assistant that summarizes text into a readable format."},
             {"role": "user",
-             "content": f"Summarize the text between triple exclamation marks: !!!{chunk}!!! \
+             "content": f"Summarize the text between triple exclamation marks \
                 Return the summary in HTML formatting, for better readability \
-                Have a section that states the name of this article, and the date of the article, \
+                Have a section that states the exact name of this article, and the date of the article, \
                 Have a section for 1 to 2 sentence executive summary, \
                 Have a section called keywords, and list the key concepts from the summary in this section. \
                 Then have a section that displays a 1 to 3 paragraph summary. Look for particular content which \
                 showcases emerging strategic trends in the technology industry, or emerging technologies. \
                 If the following background context in triple backticks isn't empty, then include this background \
-                context in your analysis ```{end_summary}```"
+                context in your analysis. \
+                Background context: ```{end_summary}``` \
+                Original text: !!!{chunk}!!!"
             }
             ],
             temperature = 0.7,
@@ -276,7 +317,7 @@ if __name__ == '__main__':
 
         # splice up the email content into chunks below the llm token limit (e.g., 4096)
         print("calling chunk_text()...")
-        chunks = chunk_text(email_body, llm_token_limit, 50)
+        chunks = chunk_text(email_body, llm_token_limit, 200)
 
         # test if chunked array is populated
         #print(f'number of chunks = {len(chunks)}')
