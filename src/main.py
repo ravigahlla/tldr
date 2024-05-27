@@ -16,21 +16,46 @@ open_ai_model = "gpt-4"
 #llm_token_limit = 1000 # for testing purposes
 llm_token_limit = 8192
 
-# Get the directory where the script is located
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Construct the absolute path to the .config file
-config_path = os.path.join(script_dir, '../.config')
-
-# send the key, get the value from the hidden .config file
-
 
 def load_api_key(key):
+    """
+    Get the value from the key in the hidden .config file
+    Args:
+        key: what you're trying to look up
+
+    Returns: the value in the key-value pair from the config file
+
+    """
+    # Get the directory where the script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Construct the absolute path to the .config file
+    config_path = os.path.join(script_dir, '../.config')
+
     with open(config_path, 'r') as file:
         config = json.load(file)
         return config[key]
 
 # fetch the emails
+
+
+def check_if_file_exists(file):
+    # Get the directory where the script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Construct the absolute path to the .config file
+    file_path = os.path.join(script_dir, file)
+
+    if os.path.exists(file_path):
+        print(f"{file} exists")
+        try:
+            with open(file_path, 'r') as file:
+                config = json.load(file)
+                print(f"{file} loaded successfully")
+        except Exception as e:
+            print(f"Error reading {file}: {e}")
+    else:
+        print(f"{file} does not exist")
 
 
 def fetch_emails(email_user, email_password, sender_email, server='imap.gmail.com'):
@@ -205,23 +230,12 @@ if __name__ == '__main__':
     #print(load_api_key('test_email_subject')) # test method
 
     # check if .config exists
-    """
-    if os.path.exists(config_path):
-        print("Config file exists")
-        try:
-            with open(config_path, 'r') as file:
-                config = json.load(file)
-                print("Config loaded successfully")
-        except Exception as e:
-            print(f"Error reading config file: {e}")
-    else:
-        print("Config file does not exist")
-    """
+    #check_if_file_exists('../.config')
 
     emails = fetch_emails(load_api_key('gmail_user'), load_api_key('gmail_app_pass'), load_api_key('sender_email'))
 
     #print(f'number of emails = {len(emails)}')
-    print(f'llm_token_limit = {llm_token_limit}')
+    #print(f'llm_token_limit = {llm_token_limit}')
 
     # go through each email
     for email in emails:
