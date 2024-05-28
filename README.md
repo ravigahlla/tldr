@@ -38,13 +38,12 @@ Requirements:
 
 ***TODO***
 - ~~need to handling token limits (4096)~~
+- ~~setup this script on a separate server (or a Raspberry Pi)~~
+- ~~set a cron job to either run at a specific time, or ping my email and send me a summary~~
+- ~~deal with rich-content email (embedded video, audio) summarization~~
 - create a test flag, which will reference variables with various test values (and then a "PROD" state, which will
 make it ready for public-use)
 - better handle error handling in the try catch code properly (openai.error doesn't exist, so need to find updated version)
-- setup this script on a separate server (or a Raspberry Pi)
-- set a cron job to either run at a specific time, or ping my email and send me a summary
 - make this server interactive: I can email back a reply, and then get a response, if I want to dig deeper
 - setup another email handle (e.g., 'summarizerbot@?')
 - be LLM agnostic (support for OpenAI, Gemini, or a combination of all)
-- deal with rich-content email (embedded video, audio) summarization
- 
