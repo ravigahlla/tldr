@@ -40,3 +40,4 @@ make it ready for public-use)
 - setup another email handle (e.g., 'summarizerbot@')?
 - be LLM agnostic (support for OpenAI, Gemini, or a combination of all)
 - split up methods into different related files (or create a class to handle)
+- 
