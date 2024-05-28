@@ -146,40 +146,6 @@ def chunk_text(text_body, max_tokens, extra_tokens):
     return chunks
 
 
-'''def chunk_text(text_body, max_tokens, extra_tokens):
-    """
-    Chunk the given text so that each chunk has fewer than `max_tokens`,
-    considering `extra_tokens` required for the role and response.
-
-    Args:
-    text (str): The text to be chunked.
-    max_tokens (int): Maximum number of tokens allowed per chunk including extras.
-    extra_tokens (int): Tokens required for additional elements like role, response.
-
-    Returns:
-    list: A list of text chunks.
-    """
-    words = text_body.split()
-    current_chunk = []
-    current_length = 0
-    chunks = []
-
-    for word in words:
-        word_tokens = count_tokens(word)
-        if current_length + word_tokens + extra_tokens > max_tokens:
-            chunks.append(" ".join(current_chunk))
-            current_chunk = []
-            current_length = 0
-        current_chunk.append(word)
-        current_length += word_tokens
-
-    # Don't forget to add the last chunk if there's remaining content.
-    if current_chunk:
-        chunks.append(" ".join(current_chunk))
-
-    return chunks'''
-
-
 def summarizer(chunks):
     '''
     takes a list of strings below the LLM token limit, traverse the list, and aggregate a summary
