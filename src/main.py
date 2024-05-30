@@ -163,10 +163,10 @@ def summarizer(chunks):
 
         delimiter = "####"
         try:
-            prompt_specifier = load_key_from_config_file('prompt_specifier')
+            prompt_focus = load_key_from_config_file('prompt_focus')
             #print("prompt specifier exists")
         except KeyError:
-            prompt_specifier = ""
+            prompt_focus = ""
             #print("prompt specifier doesn't exist")
 
         try:
@@ -180,7 +180,7 @@ def summarizer(chunks):
                 Have a section that states the exact name of this article, and the date of the article, \
                 Have a section for 1 to 2 sentence executive summary, \
                 Have a section called keywords, and list the key concepts from the summary in this section. \
-                Then a section for a 1 to 3 paragraph summary. {prompt_specifier}. \
+                Then a section for a 1 to 3 paragraph summary. {prompt_focus}. \
                 If the following background context delimited by {delimiter} isn't empty, then include this background \
                 context in your analysis. \
                 Background context: {delimiter}{end_summary}{delimiter} \
