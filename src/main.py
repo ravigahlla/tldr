@@ -22,7 +22,7 @@ open_ai_model = "gpt-4"
 llm_token_limit = 8192
 
 
-def load_api_key(key):
+def load_key_from_config_file(key):
     """
     Get the value from the key in the hidden .config file
     Args:
@@ -153,7 +153,7 @@ def summarizer(chunks):
     :return: a summary string of the entire chunked strings
     '''
 
-    client = OpenAI(api_key=load_api_key('openai_api_key'))
+    client = OpenAI(api_key=load_key_from_config_file('openai_api_key'))
 
     end_summary = ''  # initial value of the summary will be empty
 
@@ -161,27 +161,34 @@ def summarizer(chunks):
         # print(f"orig = {chunk}") # for debugging
         # print(f"resp = {callLLM(chunk)}")
 
+        delimiter = "####"
+        try:
+            prompt_specifier = load_key_from_config_file('prompt_specifier')
+            #print("prompt specifier exists")
+        except KeyError:
+            prompt_specifier = ""
+            #print("prompt specifier doesn't exist")
+
         try:
             completion = client.chat.completions.create(
             model=open_ai_model,  # Make sure you have access to this model
             messages=[
-            {"role": "system", "content": "You are a helpful assistant that summarizes text into a readable format."},
+            {"role": "system", "content": "You are an assistant that summarizes text into a readable format."},
             {"role": "user",
-             "content": f"Summarize the text between triple exclamation marks \
+             "content": f"Summarize the text delimited using the following identifier: {delimiter}  \
                 Return the summary in HTML formatting, for better readability \
                 Have a section that states the exact name of this article, and the date of the article, \
                 Have a section for 1 to 2 sentence executive summary, \
                 Have a section called keywords, and list the key concepts from the summary in this section. \
-                Then have a section that displays a 1 to 3 paragraph summary. Look for particular content which \
-                showcases emerging strategic trends in the technology industry, or emerging technologies. \
-                If the following background context in triple backticks isn't empty, then include this background \
+                Then a section for a 1 to 3 paragraph summary. {prompt_specifier}. \
+                If the following background context delimited by {delimiter} isn't empty, then include this background \
                 context in your analysis. \
-                Background context: ```{end_summary}``` \
-                Original text: !!!{chunk}!!!"
+                Background context: {delimiter}{end_summary}{delimiter} \
+                Original text: {delimiter}{chunk}{delimiter}"
             }
             ],
             temperature = 0.7,
-                # max_tokens=llm_token_limit,
+            # max_tokens=llm_token_limit,
             top_p = 1.0,
             frequency_penalty = 0.0,
             presence_penalty = 0.0
@@ -264,7 +271,7 @@ if __name__ == '__main__':
     # check if .config exists
     #check_if_file_exists('../.config')
 
-    emails = fetch_emails(load_api_key('gmail_user'), load_api_key('gmail_app_pass'), load_api_key('sender_email'))
+    emails = fetch_emails(load_key_from_config_file('gmail_user'), load_key_from_config_file('gmail_app_pass'), load_key_from_config_file('sender_email'))
 
     #print(f'number of emails = {len(emails)}')
     #print(f'llm_token_limit = {llm_token_limit}')
@@ -296,4 +303,4 @@ if __name__ == '__main__':
 
         # email the summary back to me
         print("calling send_email()...")
-        send_email(1, load_api_key('gmail_user'), load_api_key('gmail_app_pass'), load_api_key('gmail_user'), email['Subject'], summary, email)
+        send_email(1, load_key_from_config_file('gmail_user'), load_key_from_config_file('gmail_app_pass'), load_key_from_config_file('gmail_user'), email['Subject'], summary, email)
