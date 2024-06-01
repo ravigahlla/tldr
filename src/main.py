@@ -1,20 +1,12 @@
 import os
 import json
 
-import email
-import imaplib
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.message import EmailMessage
-from email import policy
+import tldr_email_helper
 
-import json
 import requests  # to be able to check the given token limits
 import tiktoken  # to count tokens, deal with token limits
 import openai
 from openai import OpenAI
-
 
 open_ai_model = "gpt-4"
 #open_ai_model = "text-embedding-3-large"
@@ -61,43 +53,6 @@ def check_if_file_exists(file):
             print(f"Error reading {file}: {e}")
     else:
         print(f"{file} does not exist")
-
-
-def fetch_emails(email_user, email_password, sender_email, server='imap.gmail.com'):
-    mail = imaplib.IMAP4_SSL(server)
-    mail.login(email_user, email_password)
-    mail.select('inbox')  # Select the inbox or another specific mailbox
-    typ, search_data = mail.search(None, f'(UNSEEN FROM "{sender_email}")')
-
-    email_ids = set(search_data[0].split())  # Using a set to avoid duplicate email IDs
-
-    emails = []
-    for email_id in email_ids:
-        _, data = mail.fetch(email_id, '(RFC822)')
-        raw_email = data[0][1]
-        # Use policy.default to return a higher-level EmailMessage object
-        msg = email.message_from_bytes(raw_email, policy=policy.default)
-
-        # Instead of extracting parts and creating a dictionary, append the full EmailMessage object
-        emails.append(msg)
-
-    return emails
-
-
-def get_email_content(email_message):
-    if email_message.is_multipart():
-        for part in email_message.walk():
-            content_type = part.get_content_type()
-            content_disposition = part.get("Content-Disposition", "")
-            if content_type == 'text/plain' and 'attachment' not in content_disposition:
-                return part.get_payload(decode=True).decode()  # Decode from Base64 and decode bytes to str
-            elif content_type == 'text/html' and 'attachment' not in content_disposition:
-                return part.get_payload(decode=True).decode()  # Optional: return HTML content
-    else:
-        # If it's not multipart, just return the entire payload
-        return email_message.get_payload(decode=True).decode()
-
-    return ""  # Return an empty string if no suitable part was found
 
 
 
@@ -216,54 +171,6 @@ def summarizer(chunks):
     return end_summary
 
 
-def send_email(is_forward_orig_email, user, password, recipient, subject, body, original_email, server='smtp.gmail.com', port=587):
-    """
-    Sends an existing EmailMessage object with additional body text at the top.
-
-    Args:
-        is_forward_orig_email (int): Value to indicate whether to send an email, or forward (includes the body of original email)
-        user (str): Sender's email address.
-        password (str): Sender's email password.
-        recipient (str): Recipient's email address.
-        subject (str): Subject of the forwarded email.
-        body (str): HTML content to prepend to the email.
-        original_email (email.message.EmailMessage): Original EmailMessage to send.
-        server (str): SMTP server address.
-        port (int): SMTP server port.
-    """
-    # Setup the SMTP server
-    with smtplib.SMTP(server, port) as smtp:
-        smtp.starttls()  # Start TLS encryption
-        smtp.login(user, password)  # Authenticate with the SMTP server
-
-        # Create a new MIMEMultipart message to forward the email with additional content
-        msg = MIMEMultipart()
-        msg['From'] = user
-        msg['To'] = recipient
-        msg['Subject'] = 'Your GPT summary of: ' + subject
-
-        # Add the new HTML body text as the first part of the email
-        intro_text = MIMEText(body, 'html')
-        msg.attach(intro_text)
-
-        if is_forward_orig_email:  # if you want to forward the original email, this will take care of that
-            msg.attach(MIMEText("<br><br><b>ORIGINAL EMAIL<b><hr><br>", 'html'))
-
-            # Check if original_email is already multipart
-            if original_email.is_multipart():
-                for part in original_email.walk():
-                    # We clone each part of the original message
-                    msg.attach(part)
-            else:
-                # If the original email is not multipart, just attach it as a plain text part
-                plain_text = MIMEText(original_email.get_payload(decode=True), 'plain')
-                msg.attach(plain_text)
-
-        # Send the constructed message
-        smtp.send_message(msg)
-        print("Email sent successfully.")
-
-
 if __name__ == '__main__':
     # test load_api_key
     #print(load_api_key('test_email_subject')) # test method
@@ -271,7 +178,8 @@ if __name__ == '__main__':
     # check if .config exists
     #check_if_file_exists('../.config')
 
-    emails = fetch_emails(load_key_from_config_file('gmail_user'), load_key_from_config_file('gmail_app_pass'), load_key_from_config_file('sender_email'))
+
+    emails = tldr_email_helper.fetch_emails(load_key_from_config_file('gmail_user'), load_key_from_config_file('gmail_app_pass'), load_key_from_config_file('sender_email'))
 
     #print(f'number of emails = {len(emails)}')
     #print(f'llm_token_limit = {llm_token_limit}')
@@ -282,7 +190,7 @@ if __name__ == '__main__':
         print(f"Summarizing: {email['Subject']}")
 
         print("calling get_email_content()...")
-        email_body = get_email_content(email)  # Get the plain text content
+        email_body = tldr_email_helper.get_email_content(email)  # Get the plain text content
         #print(body)  # Print the body of the email
 
         # test if token count works
@@ -303,4 +211,4 @@ if __name__ == '__main__':
 
         # email the summary back to me
         print("calling send_email()...")
-        send_email(1, load_key_from_config_file('gmail_user'), load_key_from_config_file('gmail_app_pass'), load_key_from_config_file('gmail_user'), email['Subject'], summary, email)
+        tldr_email_helper.send_email(1, load_key_from_config_file('gmail_user'), load_key_from_config_file('gmail_app_pass'), load_key_from_config_file('gmail_user'), email['Subject'], summary, email)
