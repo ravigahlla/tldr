@@ -1,4 +1,4 @@
-# I ain't reading all that
+# tldr
 A summarizer to deal with Stratechery's incessant daily emails
 
 **Problem**: [Stratechery](https://stratechery.com/) is a daily newsletter for technology that can contain valuable content, but the 
@@ -8,7 +8,7 @@ daily emails add up as unread after at least a week
 
 *Program Design*
 
-See [iarad-v1-workflow](docs%2Fiarad-v1-workflow.pdf) for visual
+See [tldr-v1-workflow](docs%2Ftldr-v1-workflow.pdf) for visual
 
 1. From an external server, check daily for emails from Stratechery
 2. Summarize the email with [OpenAI's API](https://platform.openai.com/overview)
