@@ -1,4 +1,4 @@
-# stratecheryGPT
+# I ain't reading all that
 A summarizer to deal with Stratechery's incessant daily emails
 
 **Problem**: [Stratechery](https://stratechery.com/) is a daily newsletter for technology that can contain valuable content, but the 
