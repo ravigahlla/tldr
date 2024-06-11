@@ -105,8 +105,8 @@ def summarizer(chunks):
 
             end_summary = completion.choices[0].message.content
 
-        #except openai.error.RateLimitError as e:
-        #    print(f"Error: {e.error['message']}")
+        except openai.RateLimitError as e:
+            print(f"Error: {e['message']}")
 
         except openai.BadRequestError as e:
             print(f"Error: {e['message']}")
