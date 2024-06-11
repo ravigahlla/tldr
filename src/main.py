@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
         # splice up the email content into chunks below the llm token limit (e.g., 4096)
         print("calling chunk_text()...")
-        chunks = tldr_openai_helper.chunk_text(email_body, tldr_openai_helper.llm_token_limit, 200)
+        chunks = tldr_openai_helper.chunk_text(email_body, tldr_openai_helper.llm_token_limit, 100)
 
         # test if chunked array is populated
         #print(f'number of chunks = {len(chunks)}')
