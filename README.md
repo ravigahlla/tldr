@@ -40,4 +40,4 @@ make it ready for public-use), and cut down on the OpenAI cost by using smaller 
 - make this server interactive: I can email back a reply, and then get a response, if I want to dig deeper
 - setup another email handle (e.g., 'summarizerbot@')?
 - be LLM agnostic (support for OpenAI, Gemini, or a combination of all)
-- 
+- can asynchronous summarization be used?
