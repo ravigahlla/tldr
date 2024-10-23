@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='stratecheryGPT',
+    name='tldr',
     version='0.1',
     packages=[''],
     install_requires=[
