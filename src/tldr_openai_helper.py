@@ -5,7 +5,7 @@ import tiktoken  # to count tokens, deal with token limits
 import openai
 from openai import OpenAI
 
-open_ai_model = "gpt-4"
+open_ai_model = "gpt-4o"
 #open_ai_model = "text-embedding-3-large"
 #llm_token_limit = 1000 # for testing purposes
 llm_token_limit = 8192
