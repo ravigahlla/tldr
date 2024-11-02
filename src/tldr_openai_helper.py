@@ -85,11 +85,11 @@ def summarizer(chunks):
             {"role": "system", "content": "You are an assistant that summarizes text into a readable format."},
             {"role": "user",
              "content": f"Summarize the text delimited using the following identifier: {delimiter}  \
-                Return the summary in HTML formatting, for better readability \
-                Have a section that states the exact name of this article, and the date of the article, \
-                Have a section for 1 to 2 sentence high-level summary, \
-                Have a section called keywords, and list horizontally the key concepts from the summary. \
-                Then a section for the 1 to 3 paragraph summary itself. {prompt_focus}. \
+                Return the summary in HTML formatting \
+                Have a section that states the exact name and date of this article, \
+                Have a section for 1 to 2 sentence high-level executive summary, \
+                Have a section for keywords, and list horizontally the key concepts from the summary \
+                Then a section for the 1 to 3 paragraph summary itself {prompt_focus}. \
                 If the following background context delimited by {delimiter} isn't empty, include this information \
                 in your overall analysis. It is not a separate section, just additional information. \
                 Background context: {delimiter}{end_summary}{delimiter} \
