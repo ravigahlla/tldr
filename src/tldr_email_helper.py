@@ -7,6 +7,7 @@ from email import policy
 import imaplib
 import smtplib
 
+import tldr_openai_helper
 
 def fetch_emails(email_user, email_password, sender_email, server='imap.gmail.com'):
     mail = imaplib.IMAP4_SSL(server)
@@ -44,6 +45,17 @@ def get_email_content(email_message):
 
     return ""  # Return an empty string if no suitable part was found
 
+def get_config_info():
+    """
+
+    Returns:
+        string containing helper information for this summarizer that we can prepend before the summary
+    """
+    # Add some helpful information about the model being used
+    config_info = f"LLM Model: {tldr_openai_helper.open_ai_model}<br><br>"
+
+    return config_info
+
 
 def send_email(is_forward_orig_email, user, password, recipient, subject, body, original_email, server='smtp.gmail.com', port=587):
     """
@@ -70,6 +82,15 @@ def send_email(is_forward_orig_email, user, password, recipient, subject, body, 
         msg['From'] = user
         msg['To'] = recipient
         msg['Subject'] = 'Your GPT summary of: ' + subject
+
+        # Attach some helpful configuration info before you summarize
+        prepend_text = get_config_info()
+
+        # Insert the prepend text just after the opening <body> tag
+        split_html = body.split("<body>")
+        body = f"{split_html[0]}<body>{prepend_text}{split_html[1]}"
+        body = body.replace("```html", "") # get rid of this annoying html text
+        #print("test\n"+body[:50]) # test the body content, print the first few characters
 
         # Add the new HTML body text as the first part of the email
         intro_text = MIMEText(body, 'html')
