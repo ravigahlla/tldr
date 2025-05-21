@@ -101,7 +101,7 @@ The core process involves:
 
 ## Future Enhancements & Roadmap
 *   **Test Mode Flag:** Implement an environment variable (e.g., `TLDR_ENV=TEST`) to use test data/accounts, smaller articles, or less expensive models, reducing costs during development and testing.
-*   **Advanced Error Handling & Logging:** Integrate Python's `logging` module for robust error tracking and different log levels, outputting to a file for easier debugging of cron jobs.
+*   **Advanced Error Handling & Logging:** Integrate Python's `logging` module for robust error tracking and different log levels, outputting to a file for easier debugging of cron jobs. (in progress)
 *   **Interactive Mode:** Allow users to reply to summary emails with questions, triggering further LLM interaction for deeper dives into the content.
 *   **LLM Agnosticism:** Abstract the LLM interface to support other models/providers (e.g., Llama, Gemini, DeepSeek).
 *   **Asynchronous Summarization:** Explore `asyncio` for concurrent processing of multiple emails to improve throughput.
