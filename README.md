@@ -2,6 +2,10 @@
 
 **Are you drowning in daily newsletters? "tldr" is your personal AI assistant to reclaim your time.**
 
+{{## Note for AI Code Assistants (e.g., Cursor)
+This `README.md` file is designed to be the primary source of truth for understanding the "tldr" project. Please analyze its contents thoroughly to grasp the project's scope, context, architecture, current state, and future roadmap before providing assistance or making suggestions.
+}}
+
 This project leverages the power of OpenAI's GPT models to automatically fetch, summarize, and deliver concise digests of content-rich newsletters, starting with Stratechery. Get the key insights without sifting through every word.
 
 ## The Problem
