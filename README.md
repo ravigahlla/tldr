@@ -1,43 +1,106 @@
-# Project: tldr
-A GPT-powered summarizer, to deal with Stratechery's daily volume of emails
+# Project: tldr - AI-Powered Newsletter Summarizer
 
-**Problem**: [Stratechery](https://stratechery.com/) is a daily newsletter for technology that can contain valuable content, but the 
-daily emails add up as unread after at least a week
+**Are you drowning in daily newsletters? "tldr" is your personal AI assistant to reclaim your time.**
 
-**Solution**: Use OpenAI's API to summarize the daily newsletters, saving you time
+This project leverages the power of OpenAI's GPT models to automatically fetch, summarize, and deliver concise digests of content-rich newsletters, starting with Stratechery. Get the key insights without sifting through every word.
 
-*Program Design*
+## The Problem
+High-value newsletters like [Stratechery](https://stratechery.com/) provide excellent analysis but can quickly accumulate, leading to a backlog of unread content and missed insights.
 
-See [tldr-v1-workflow](docs%2Ftldr-v1-workflow.pdf) for visual
+## The Solution
+"tldr" automates the process:
+1.  **Monitors Your Inbox:** Checks for new unread emails from specified senders (e.g., Stratechery).
+2.  **AI-Powered Summarization:** Utilizes OpenAI's API (currently `gpt-4o`) to generate comprehensive summaries.
+3.  **Delivers Key Information:** Sends you an email containing:
+    *   An executive summary.
+    *   Key takeaways/keywords.
+    *   The main summary.
+    *   (Optional) The original email content for reference.
 
-1. From an external server, check daily for emails from Stratechery
-2. Summarize the email with [OpenAI's API](https://platform.openai.com/overview)
-3. Send the summary back to my email, along with:
-4. An executive summary, keywords, and then the original email
+## Key Features
+*   **Automated Workflow:** Set it up once, and get summaries delivered automatically.
+*   **Intelligent Summarization:** Leverages advanced LLMs for high-quality, context-aware summaries.
+*   **Customizable Prompts:** Tailor the summarization focus and output format via configuration.
+*   **Handles Long Content:** Implements text chunking to process articles exceeding LLM token limits.
+*   **Email Integration:** Seamlessly works with Gmail (via IMAP for fetching, SMTP for sending).
+*   **Modular Design:** Code is organized into helpers for email, OpenAI interaction, and system utilities.
 
-REQs:
-- a paid account with OpenAI
-- a gmail account [with your app pass key setup](https://support.google.com/mail/answer/185833?hl=en)
-- you can set this up on your local, but an external server (I used a Raspberry Pi)
+## How it Works (Technical Overview)
+For a visual representation, see the [tldr-v1-workflow diagram](docs/tldr-v1-workflow.pdf).
 
-Setup
-1. check out the repo, go to the project directory
-2. you need to create your own .config file, containing your credentials (e.g., gmail app pass) in JSON format
-3. run 'sudo chmod 600 .config' to give yourself permission to read from the file
-4. run 'install .' to run setup.py, and install the right dependencies
-5. run 'python3 src/main.py'
+The core process involves:
+1.  **Configuration (`.config` file):** Securely stores API keys, email credentials, sender details, and custom summarization prompts.
+2.  **Email Fetching (`src/tldr_email_helper.py`):**
+    *   Connects to the specified Gmail account using `imaplib`.
+    *   Searches for unread emails from the designated sender.
+    *   Parses email content, extracting plain text or HTML.
+3.  **Content Processing & Summarization (`src/tldr_openai_helper.py`):**
+    *   Counts tokens using `tiktoken` for the configured OpenAI model (e.g., `gpt-4o`).
+    *   If content exceeds token limits, it's split into manageable chunks.
+    *   Each chunk (or the whole content if short enough) is sent to the OpenAI API with a structured prompt requesting specific summary components (executive summary, keywords, detailed summary).
+    *   A cumulative summarization strategy is used for chunked content, where the summary of previous chunks informs the summarization of the current one.
+4.  **Email Sending (`src/tldr_email_helper.py`):**
+    *   Constructs a new email with the generated summary.
+    *   Optionally appends the original email content.
+    *   Sends the summary email to your target address using `smtplib`.
+5.  **Execution (`src/main.py`):** Orchestrates the above steps. Designed to be run periodically (e.g., via a cron job).
 
+## Requirements
+*   A paid OpenAI account with API access.
+*   A Gmail account with an [App Password](https://support.google.com/mail/answer/185833?hl=en) enabled (for security and to bypass 2FA for the script).
+*   Python 3.6+
+*   Ability to run Python scripts, potentially on an external server or Raspberry Pi for continuous operation.
 
-***TODO***
-- ~~need to handling token limits (4096)~~
-- ~~setup this script on a separate server (or a Raspberry Pi)~~
-- ~~set a cron job to either run at a specific time, or ping my email and send me a summary~~
-- ~~deal with rich-content email (embedded video, audio) summarization~~
-- ~~split up methods into different related files (or create a class to handle)~~
-- create a test flag, to reference variables with various test values (and then a "PROD" state, which will
-make it ready for public-use), and cut down on the OpenAI cost by using smaller test articles
-- better handle error handling in the try catch code properly (openai.error doesn't exist, so need to find updated version)
-- make this server interactive: I can email back a reply, and then get a response, if I want to dig deeper
-- setup another email handle (e.g., 'summarizerbot@')?
-- be LLM agnostic (support for OpenAI, Gemini, or a combination of all)
-- can asynchronous summarization be used?
+## Setup & Configuration
+1.  **Clone the Repository:**
+    ```bash
+    git clone <your-repo-url>
+    cd tldr
+    ```
+2.  **Create Configuration File:**
+    *   Create a `.config` file in the project root.
+    *   This file should be in JSON format and contain your credentials and custom prompts. Example structure:
+      ```json
+      {
+        "gmail_user": "your_email@gmail.com",
+        "gmail_password": "your_gmail_app_password",
+        "openai_api_key": "sk-your_openai_api_key",
+        "target_email": "email_to_send_summaries_to@example.com",
+        "stratechery_sender_email": "admin@stratechery.com",
+        "prompt_focus": "Focus particularly on the strategic implications and future outlook mentioned in the article."
+      }
+      ```
+    *   **Important:** Add other keys as needed by `src/tldr_system_helper.py`'s `load_key_from_config_file` function.
+3.  **Set Permissions for `.config`:**
+    ```bash
+    sudo chmod 600 .config
+    ```
+    This restricts read/write access to the owner only, protecting your credentials.
+4.  **Install Dependencies:**
+    ```bash
+    pip install .
+    ```
+    (This runs `setup.py` and installs packages listed in `install_requires`.)
+5.  **Run the Script:**
+    ```bash
+    python3 src/main.py
+    ```
+    Consider setting this up as a cron job for automated daily execution.
+
+## Technologies Used
+*   **Language:** Python 3
+*   **AI:** OpenAI API (GPT-4o)
+*   **Email:** `imaplib` (fetching), `smtplib` (sending)
+*   **Tokenization:** `tiktoken`
+*   **Configuration:** JSON
+*   **Dependencies:** `requests`, `urllib3` (see `setup.py` for specific versions)
+
+## Future Enhancements & Roadmap
+*   **Test Mode Flag:** Implement an environment variable (e.g., `TLDR_ENV=TEST`) to use test data/accounts, smaller articles, or less expensive models, reducing costs during development and testing.
+*   **Advanced Error Handling & Logging:** Integrate Python's `logging` module for robust error tracking and different log levels, outputting to a file for easier debugging of cron jobs.
+*   **Interactive Mode:** Allow users to reply to summary emails with questions, triggering further LLM interaction for deeper dives into the content.
+*   **LLM Agnosticism:** Abstract the LLM interface to support other models/providers (e.g., Llama, Gemini, DeepSeek).
+*   **Asynchronous Summarization:** Explore `asyncio` for concurrent processing of multiple emails to improve throughput.
+*   **Web Interface (Potential Long-Term):** A simple web UI for configuration or viewing past summaries.
+*   **Expanded Email Provider Support:** Allow configuration for email providers beyond Gmail.
+*   **Enhanced Rich Content Parsing:** Improve extraction from complex HTML emails or explore ways to note/link to non-text media.
