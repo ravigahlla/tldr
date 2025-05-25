@@ -1,5 +1,5 @@
-from tldr_system_helper import load_key_from_config_file, ConfigError
-from tldr_logger import logger
+from .tldr_system_helper import load_key_from_config_file, ConfigError
+from .tldr_logger import logger
 
 import requests  # to be able to check the given token limits
 import tiktoken  # to count tokens, deal with token limits
@@ -60,13 +60,13 @@ def chunk_text(text_body: str, model_name: str, max_tokens_per_chunk: int, overl
     Allows for overlapping tokens between chunks to maintain context.
 
     Args:
-        text_body (str): The text to be chunked.
+    text_body (str): The text to be chunked.
         model_name (str): The OpenAI model name (for token counting).
         max_tokens_per_chunk (int): Maximum number of tokens for each chunk.
         overlap_tokens (int): Number of tokens to overlap between chunks.
 
     Returns:
-        list: A list of text chunks.
+    list: A list of text chunks.
     """
     if not text_body:
         logger.info("chunk_text received empty text_body, returning empty list.")
@@ -186,7 +186,7 @@ def summarize_text_chunks(chunks: list, client: openai.OpenAI, model_to_use: str
             
             completion = client.chat.completions.create(
                 model=model_to_use,
-                messages=[
+            messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": current_user_prompt}
                 ],

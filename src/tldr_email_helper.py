@@ -8,7 +8,7 @@ import imaplib
 import smtplib
 import socket # For catching network errors like gaierror
 
-import tldr_openai_helper
+from . import tldr_openai_helper
 
 # Import the logger instance from our new tldr_logger module
 from .tldr_logger import logger
@@ -205,6 +205,7 @@ def send_email(is_forward_orig_email: bool, user, password, recipient, subject, 
         bool: True if email was sent successfully, False otherwise.
     """
     logger.info(f"Attempting to send email. To: {recipient}, Subject: {subject}")
+    smtp = None  # Initialize smtp to None for the finally block
     try:
         msg = MIMEMultipart()
         msg['From'] = user
@@ -235,7 +236,7 @@ def send_email(is_forward_orig_email: bool, user, password, recipient, subject, 
         if is_forward_orig_email and original_email_msg:
             logger.debug("Attaching original email content.")
             msg.attach(MIMEText("<br><hr><b>ORIGINAL EMAIL:</b><br><br>", 'html', _charset='utf-8'))
-            
+
             # Make a deep copy if you plan to modify original_email_msg parts,
             # or if it might be reused. For simple forwarding, direct iteration is fine.
             if original_email_msg.is_multipart():
@@ -276,7 +277,7 @@ def send_email(is_forward_orig_email: bool, user, password, recipient, subject, 
                     logger.error(f"Error attaching non-multipart original email content: {e}", exc_info=True)
                     # Fallback: attach as plain text if all else fails
                     msg.attach(MIMEText(f"Could not fully process original message part. Error: {e}", 'plain', _charset='utf-8'))
-        
+
         # Connect to SMTP server
         logger.debug(f"Connecting to SMTP server: {server}:{port}")
         # For Gmail, port 587 uses STARTTLS, port 465 uses SMTP_SSL directly
@@ -286,17 +287,14 @@ def send_email(is_forward_orig_email: bool, user, password, recipient, subject, 
             smtp = smtplib.SMTP(server, port, timeout=30)
             smtp.starttls()
         
-        try:
-            logger.debug(f"Logging into SMTP server as {user}")
-            smtp.login(user, password)
-            logger.info(f"Successfully logged into SMTP server.")
+        # Combined login and send within the same try block after connection
+        logger.debug(f"Logging into SMTP server as {user}")
+        smtp.login(user, password)
+        logger.info(f"Successfully logged into SMTP server.")
             
-            smtp.send_message(msg)
-            logger.info(f"Email successfully sent to: {recipient}")
-            return True
-        finally:
-            smtp.quit()
-            logger.debug("Closed SMTP connection.")
+        smtp.send_message(msg)
+        logger.info(f"Email successfully sent to: {recipient}")
+        return True
 
     except smtplib.SMTPAuthenticationError as e:
         logger.error(f"SMTP authentication failed for user {user}. Server response: {e.smtp_code} - {e.smtp_error}", exc_info=True)
@@ -312,5 +310,12 @@ def send_email(is_forward_orig_email: bool, user, password, recipient, subject, 
         logger.error(f"Timeout connecting/sending via SMTP server {server}", exc_info=True)
     except Exception as e:
         logger.error(f"An unexpected error occurred while sending email: {e}", exc_info=True)
+    finally: # Ensures smtp.quit() is called if smtp object was created
+        if smtp:
+            try:
+                smtp.quit()
+                logger.debug("Closed SMTP connection.")
+            except Exception as e:
+                logger.warning(f"Error during SMTP quit: {e}", exc_info=True)
     
     return False
