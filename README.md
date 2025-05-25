@@ -28,6 +28,7 @@ High-value newsletters like [Stratechery](https://stratechery.com/) provide exce
 *   **Handles Long Content:** Implements text chunking to process articles exceeding LLM token limits.
 *   **Email Integration:** Seamlessly works with Gmail (via IMAP for fetching, SMTP for sending).
 *   **Modular Design:** Code is organized into helpers for email, OpenAI interaction, and system utilities.
+*   **Robust Logging & Error Handling:** Comprehensive logging to console and rotating files, with improved error management.
 
 ## How it Works (Technical Overview)
 For a visual representation, see the [tldr-v1-workflow diagram](docs/tldr-v1-workflow.pdf).
@@ -48,11 +49,12 @@ The core process involves:
     *   Optionally appends the original email content.
     *   Sends the summary email to your target address using `smtplib`.
 5.  **Execution (`src/main.py`):** Orchestrates the above steps. Designed to be run periodically (e.g., via a cron job).
+6.  **Logging (`src/tldr_logger.py`):** All operations are logged to both the console and a rotating file (`tldr_app.log`) for easier debugging and monitoring.
 
 ## Requirements
 *   A paid OpenAI account with API access.
 *   A Gmail account with an [App Password](https://support.google.com/mail/answer/185833?hl=en) enabled (for security and to bypass 2FA for the script).
-*   Python 3.6+
+*   Python 3.9+ (as per current venv setup)
 *   Ability to run Python scripts, potentially on an external server or Raspberry Pi for continuous operation.
 
 ## Setup & Configuration
@@ -61,7 +63,19 @@ The core process involves:
     git clone <your-repo-url>
     cd tldr
     ```
-2.  **Create Configuration File:**
+2.  **Create a Virtual Environment (Recommended):**
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+    ```
+3.  **Install Dependencies:**
+    *   Ensure you have `pip` installed and updated (`python3 -m pip install --upgrade pip`).
+    *   Install required packages from `requirements.txt`:
+    ```bash
+    python3 -m pip install -r requirements.txt
+    ```
+    *   (Alternatively, if you plan to modify and distribute, you can use `pip install .` which uses `setup.py`, but `requirements.txt` is generally preferred for application development.)
+4.  **Create Configuration File:**
     *   Create a `.config` file in the project root.
     *   This file should be in JSON format and contain your credentials and custom prompts. Example structure:
       ```json
@@ -75,21 +89,27 @@ The core process involves:
       }
       ```
     *   **Important:** Add other keys as needed by `src/tldr_system_helper.py`'s `load_key_from_config_file` function.
-3.  **Set Permissions for `.config`:**
+5.  **Set Permissions for `.config`:**
     ```bash
-    sudo chmod 600 .config
+    chmod 600 .config  # On Unix-like systems
     ```
-    This restricts read/write access to the owner only, protecting your credentials.
-4.  **Install Dependencies:**
-    ```bash
-    pip install .
-    ```
-    (This runs `setup.py` and installs packages listed in `install_requires`.)
-5.  **Run the Script:**
+    This restricts read/write access to the owner only, protecting your credentials. (Note: `sudo` is usually not needed if you own the file).
+6.  **Run the Script:**
     ```bash
     python3 src/main.py
     ```
     Consider setting this up as a cron job for automated daily execution.
+
+## Running Tests
+The project includes a suite of unit tests to ensure functionality and catch regressions.
+1.  **Ensure Test Dependencies are Installed:**
+    The `requirements.txt` file includes `pytest` and `pytest-mock`. If you followed the setup instructions, these should already be installed.
+2.  **Run Tests:**
+    From the project root directory, execute:
+    ```bash
+    python3 -m pytest
+    ```
+    You should see output indicating the number of tests run and their status (passed, failed, skipped).
 
 ## Technologies Used
 *   **Language:** Python 3
@@ -97,11 +117,13 @@ The core process involves:
 *   **Email:** `imaplib` (fetching), `smtplib` (sending)
 *   **Tokenization:** `tiktoken`
 *   **Configuration:** JSON
-*   **Dependencies:** `requests`, `urllib3` (see `setup.py` for specific versions)
+*   **Logging:** Python's built-in `logging` module
+*   **Testing:** `pytest`, `pytest-mock`
+*   **Dependencies:** `openai`, `tiktoken`, `pytest`, `pytest-mock` (see `requirements.txt` for specific versions)
 
 ## Future Enhancements & Roadmap
 *   **Test Mode Flag:** Implement an environment variable (e.g., `TLDR_ENV=TEST`) to use test data/accounts, smaller articles, or less expensive models, reducing costs during development and testing.
-*   **Advanced Error Handling & Logging:** Integrate Python's `logging` module for robust error tracking and different log levels, outputting to a file for easier debugging of cron jobs. (in progress)
+*   **Advanced Error Handling & Logging:** Integrated Python's `logging` module for robust error tracking and different log levels, outputting to a file for easier debugging of cron jobs. **(Completed)**
 *   **Interactive Mode:** Allow users to reply to summary emails with questions, triggering further LLM interaction for deeper dives into the content.
 *   **LLM Agnosticism:** Abstract the LLM interface to support other models/providers (e.g., Llama, Gemini, DeepSeek).
 *   **Asynchronous Summarization:** Explore `asyncio` for concurrent processing of multiple emails to improve throughput.
