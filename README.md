@@ -74,29 +74,30 @@ The core process involves:
     ```bash
     python3 -m pip install -r requirements.txt
     ```
-    *   (Alternatively, if you plan to modify and distribute, you can use `pip install .` which uses `setup.py`, but `requirements.txt` is generally preferred for application development.)
 4.  **Create Configuration File:**
-    *   Create a `.config` file in the project root.
-    *   This file should be in JSON format and contain your credentials and custom prompts. Example structure:
-      ```json
-      {
-        "gmail_user": "your_email@gmail.com",
-        "gmail_password": "your_gmail_app_password",
-        "openai_api_key": "sk-your_openai_api_key",
-        "target_email": "email_to_send_summaries_to@example.com",
-        "stratechery_sender_email": "admin@stratechery.com",
-        "prompt_focus": "Focus particularly on the strategic implications and future outlook mentioned in the article."
-      }
-      ```
-    *   **Important:** Add other keys as needed by `src/tldr_system_helper.py`'s `load_key_from_config_file` function.
-5.  **Set Permissions for `.config`:**
+    *   The project includes a template file named `.config.template` which lists all necessary and optional configuration keys.
+    *   To create your personal `.config` file from this template, run one of the provided setup scripts from the project root directory (it will only copy if `.config` doesn't already exist):
+        *   **Using the Python script:**
+            ```bash
+            python3 setup_config.py
+            ```
+        *   **Or, using the shell script (make executable first):**
+            ```bash
+            chmod +x setup_config.sh
+            ./setup_config.sh
+            ```
+    *   **After running the script, it is CRUCIAL that you open the newly created `.config` file and carefully replace all placeholder values (e.g., "YOUR_GMAIL_USERNAME@gmail.com", "sk-YOUR_OPENAI_API_KEY") with your actual credentials and desired settings.**
+        The `.config` file must be valid JSON. Refer to `.config.template` for the required structure and keys.
+5.  **Set Permissions for `.config` (Important for security):**
+    On Unix-like systems (macOS, Linux), restrict access to your `.config` file:
     ```bash
-    chmod 600 .config  # On Unix-like systems
+    chmod 600 .config
     ```
-    This restricts read/write access to the owner only, protecting your credentials. (Note: `sudo` is usually not needed if you own the file).
-6.  **Run the Script:**
+    This restricts read/write access to the owner only, protecting your credentials.
+6.  **Run the Application:**
+    From the project root directory:
     ```bash
-    python3 src/main.py
+    python3 -m src.main
     ```
     Consider setting this up as a cron job for automated daily execution.
 

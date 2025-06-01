@@ -1,0 +1,16 @@
+{
+  "gmail_user": "YOUR_GMAIL_USERNAME@gmail.com",
+  "gmail_app_pass": "YOUR_GMAIL_APP_PASSWORD (16 characters, no spaces)",
+  "openai_api_key": "sk-YOUR_OPENAI_API_KEY",
+  "target_email": "EMAIL_ADDRESS_TO_SEND_SUMMARIES_TO@example.com",
+  "stratechery_sender_email": "EMAIL_OF_NEWSLETTER_SENDER_TO_MONITOR@example.com",
+  "system_prompt": "You are an expert assistant that summarizes articles into a well-structured HTML format, including an executive summary, keywords, and the main summary.",
+  "prompt_focus": "Optional: Add a specific focus for the summarization here, e.g., Focus on financial implications. Leave empty if no specific focus.",
+  "forward_original_email": true,
+  "openai_model_name": "gpt-4o",
+  "imap_host": "imap.gmail.com",
+  "smtp_host": "smtp.gmail.com",
+  "smtp_port": 465,
+  "max_tokens_per_chunk": 4000,
+  "chunk_overlap_tokens": 200
+} 

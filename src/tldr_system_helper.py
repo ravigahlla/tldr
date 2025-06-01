@@ -82,11 +82,14 @@ def load_critical_configs(config_file_path: str = DEFAULT_CONFIG_PATH):
     logger.info("Loading critical configurations...")
     critical_keys_to_load = {
         "gmail_user": True,
-        "gmail_password": True,
+        "gmail_app_pass": True,
         "openai_api_key": True,
         "target_email": True,
-        "stratechery_sender_email": True, # Assuming this is critical
+        "stratechery_sender_email": True,
         # Add other essential keys here with True if critical, False or default if not
+        "forward_original_email": False,
+        "openai_model_name": False,
+        "system_prompt": False
     }
     
     configs = {}
