@@ -16,11 +16,11 @@ from openai import OpenAI
 # It's better if main.py fetches this and passes it around.
 # For now, we'll load it here to maintain current behavior, but flag it for refactoring.
 try:
-    open_ai_model = load_key_from_config_file("openai_model", default="gpt-4o")
+    open_ai_model = load_key_from_config_file("openai_model_name", default="gpt-4o")
     logger.info(f"OpenAI model set to: {open_ai_model} (from config or default)")
 except ConfigError:
     open_ai_model = "gpt-4o" # Fallback if config loading itself fails catastrophically here
-    logger.warning(f"Could not load 'openai_model' from config. Defaulting to {open_ai_model}.")
+    logger.warning(f"Could not load 'openai_model_name' from config. Defaulting to {open_ai_model}.")
 
 # Custom OpenAI related exceptions
 class OpenAIError(Exception):

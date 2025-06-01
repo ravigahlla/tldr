@@ -64,7 +64,7 @@ def main_process():
             "imap_host": tldr_system_helper.load_key_from_config_file("imap_host", default=DEFAULT_IMAP_HOST),
             "smtp_host": tldr_system_helper.load_key_from_config_file("smtp_host", default=DEFAULT_SMTP_HOST),
             "smtp_port": int(tldr_system_helper.load_key_from_config_file("smtp_port", default=str(DEFAULT_SMTP_PORT_SSL))), # Default to SSL port
-            "openai_model_name": tldr_system_helper.load_key_from_config_file("openai_model", default=DEFAULT_OPENAI_MODEL),
+            "openai_model_name": tldr_system_helper.load_key_from_config_file("openai_model_name", default=DEFAULT_OPENAI_MODEL),
             "max_tokens_per_chunk": int(tldr_system_helper.load_key_from_config_file("max_tokens_per_chunk", default=str(DEFAULT_MAX_TOKENS_PER_CHUNK))),
             "chunk_overlap_tokens": int(tldr_system_helper.load_key_from_config_file("chunk_overlap_tokens", default=str(DEFAULT_CHUNK_OVERLAP_TOKENS))),
             "system_prompt": tldr_system_helper.load_key_from_config_file("system_prompt", default=DEFAULT_SYSTEM_PROMPT),
