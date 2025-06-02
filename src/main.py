@@ -20,9 +20,9 @@ try:
     from .tldr_email_helper import EmailConnectionError, EmailFetchingError, EmailSendingError
     from .tldr_openai_helper import OpenAIError, OpenAITokenizerError, OpenAIAPIError
 except ImportError: # Fallback for running script directly in src
-import tldr_email_helper
-import tldr_openai_helper
-import tldr_system_helper
+    import tldr_email_helper
+    import tldr_openai_helper
+    import tldr_system_helper
     from tldr_system_helper import ConfigError
     from tldr_email_helper import EmailConnectionError, EmailFetchingError, EmailSendingError
     from tldr_openai_helper import OpenAIError, OpenAITokenizerError, OpenAIAPIError
@@ -37,7 +37,14 @@ DEFAULT_SMTP_PORT_TLS = 587 # For SMTP with STARTTLS
 DEFAULT_OPENAI_MODEL = "gpt-4o"
 DEFAULT_MAX_TOKENS_PER_CHUNK = 4000 # Max tokens for each text chunk before sending to LLM
 DEFAULT_CHUNK_OVERLAP_TOKENS = 200  # Overlap between chunks
-DEFAULT_SYSTEM_PROMPT = "You are an expert assistant that summarizes articles into a well-structured HTML format."
+DEFAULT_SYSTEM_PROMPT = (
+    "You are a highly skilled analyst and insightful communicator specializing in "
+    "extracting deep insights and explaining complex topics from articles in a clear, "
+    "engaging, and well-structured HTML format. Your goal is not just to summarize, "
+    "but to provide a comprehensive understanding that includes critical analysis and "
+    "contextual explanations. Assume the reader is intelligent but may not be familiar "
+    "with all specific jargon or background details mentioned in the text."
+)
 # The detailed user prompt is now constructed within tldr_openai_helper.summarize_text_chunks
 
 
