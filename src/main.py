@@ -20,9 +20,9 @@ try:
     from .tldr_email_helper import EmailConnectionError, EmailFetchingError, EmailSendingError
     from .tldr_openai_helper import OpenAIError, OpenAITokenizerError, OpenAIAPIError
 except ImportError: # Fallback for running script directly in src
-    import tldr_email_helper
-    import tldr_openai_helper
-    import tldr_system_helper
+import tldr_email_helper
+import tldr_openai_helper
+import tldr_system_helper
     from tldr_system_helper import ConfigError
     from tldr_email_helper import EmailConnectionError, EmailFetchingError, EmailSendingError
     from tldr_openai_helper import OpenAIError, OpenAITokenizerError, OpenAIAPIError
